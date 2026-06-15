@@ -19,7 +19,7 @@
 
     <!-- Top bar -->
     <div id="top-bar">
-        <div class="logo">PENDELBAHN HOVERLA <span class="subtitle">Чорногора · Карпати · 3D концепт</span></div>
+        <div class="logo">PENDELBAHN HOVERLA <span class="subtitle">Чорногора · рельєф SRTM + супутник Esri</span></div>
         <div class="controls-top">
             <button class="btn active" data-view="all">Загальний вид</button>
             <button class="btn" data-view="valley">Заросляк</button>
@@ -32,23 +32,26 @@
     <!-- Legend / layers -->
     <button id="legend-toggle" onclick="document.getElementById('legend').classList.toggle('show')">☰ Меню</button>
     <div id="legend" class="panel">
+        <button id="btnProfile" class="menu-btn">📈 Профіль траси та дані</button>
         <h4>Легенда</h4>
         <div class="legend-item"><span class="swatch" style="background:#e8e4e0"></span> Заросляк · нижня (1259 м)</div>
         <div class="legend-item"><span class="swatch" style="background:#c8cdd4"></span> Мала Говерла · верхня (1760 м)</div>
-        <div class="legend-item"><span class="swatch" style="background:#9aa0a6"></span> Опора · 47 м (1 шт)</div>
+        <div class="legend-item"><span class="swatch" style="background:#9aa0a6"></span> Опора (1 шт)</div>
         <div class="legend-item"><span class="swatch" style="background:#ffcc44"></span> Кабіна (60 пас.)</div>
         <div class="legend-item"><span class="swatch" style="background:#2b2f36"></span> Несучо-тяговий трос</div>
-        <div class="legend-item"><span class="swatch" style="background:#ffffff"></span> Сніжник вершини</div>
+        <div class="legend-item"><span class="swatch" style="background:#6e655a"></span> Дорога Ворохта→Заросляк (OSM)</div>
+        <div class="legend-item"><span class="swatch" style="background:#ff9b2f"></span> Кадастрова ділянка (нижня ст. + старт-опора)</div>
         <hr>
         <strong style="font-size:11px;color:#8a8;">Шари:</strong>
         <label><input type="checkbox" id="toggleTerrain" checked> ⛰️ Рельєф</label>
+        <label><input type="checkbox" id="toggleOrtho" checked> 🛰 Ортофото</label>
         <label><input type="checkbox" id="toggleCable" checked> 🪢 Трос</label>
         <label><input type="checkbox" id="toggleTowers" checked> 🗼 Опори</label>
         <label><input type="checkbox" id="toggleCabins" checked> 🚡 Кабіни</label>
         <label><input type="checkbox" id="toggleStations" checked> 🏛️ Станції</label>
-        <label><input type="checkbox" id="toggleTrees" checked> 🌲 Ліс</label>
+        <label><input type="checkbox" id="toggleRoad" checked> 🛣 Дорога</label>
+        <label><input type="checkbox" id="toggleParcel" checked> ▦ Ділянка 0.89 га</label>
         <label><input type="checkbox" id="toggleLabels" checked> 📝 Підписи</label>
-        <label><input type="checkbox" id="toggleSnow" checked> ❄️ Сніжник</label>
         <hr>
         <label><input type="range" id="speed" min="0" max="2.5" step="0.1" value="1"> 🕑 Швидкість</label>
     </div>
@@ -63,8 +66,11 @@
         <div class="stat-row"><span>Горизонт. довжина:</span><span>2343 м</span></div>
         <div class="stat-row"><span>Довжина тросу:</span><span>2396 м</span></div>
         <div class="stat-row"><span>Середній ухил:</span><span>21.4 %</span></div>
-        <div class="stat-row"><span>Опора:</span><span>1 × 47 м</span></div>
-        <div class="stat-row"><span>Прольоти:</span><span>1437 + 906 м</span></div>
+        <div class="stat-row"><span>Опора:</span><span id="stat-tower">—</span></div>
+        <div class="stat-row"><span>Прольоти:</span><span id="stat-spans">—</span></div>
+        <div class="stat-row"><span>Мін. просвіт:</span><span id="stat-clear">—</span></div>
+        <div class="stat-row"><span>Дорога:</span><span>Ворохта→Заросляк</span></div>
+        <div class="stat-row"><span>Рельєф:</span><span>SRTM + Esri ortho</span></div>
         <div class="stat-row"><span>Місткість кабіни:</span><span>60 пас.</span></div>
     </div>
 
@@ -81,6 +87,16 @@
 
     <div id="hint">Ліва миша — обертання · Колесо — зум · Права/Shift — панорама</div>
 
+    <!-- Profile / lift-data window -->
+    <div id="profile-modal">
+        <div class="profile-box">
+            <button id="profile-close">✕</button>
+            <h3>📈 Поздовжній профіль траси</h3>
+            <canvas id="profileCanvas" width="860" height="320"></canvas>
+            <div id="profileData"></div>
+        </div>
+    </div>
+
     <script type="importmap">
     {
         "imports": {
@@ -89,6 +105,6 @@
         }
     }
     </script>
-    <script type="module" src="js/viewer.js?v=20260615b"></script>
+    <script type="module" src="js/viewer.js?v=20260615j"></script>
 </body>
 </html>
