@@ -1,20 +1,46 @@
 All Rights Reserved
 
-Copyright (c) 2026 shev43 (Oleksandr Shevchenko)
+Copyright (c) 2026 shev43 (Oleksandr Shevchenko) — sole owner.
 
-This software and all associated files, designs, 3D models, and documentation
-are the exclusive intellectual property of the author.
+The ORIGINAL WORK in this repository — source code, user interface,
+3D scene and model, design, and documentation — is the exclusive
+intellectual property of the author, who is its sole and only owner.
 
 PROHIBITED without explicit written permission from the author:
-- Copying, reproduction, or distribution of this software
+- Copying, reproduction, or distribution of the original work
 - Modification or creation of derivative works
-- Commercial or non-commercial use
+- Commercial or non-commercial reuse
 - Reverse engineering or decompilation
-- Sharing, publishing, or making available to third parties
+- Republishing or making the original work available to third parties
 
-This repository is provided for VIEWING PURPOSES ONLY.
+This repository is published for VIEWING/DEMONSTRATION PURPOSES ONLY.
+Any unauthorized use, reproduction, or distribution of the original work
+is strictly prohibited and may result in legal action.
 
-Any unauthorized use, reproduction, or distribution is strictly prohibited
-and may result in legal action.
+--------------------------------------------------------------------------
+THIRD-PARTY DATA (NOT owned by the author; under their own licenses/terms)
+
+The author does not claim ownership of the following bundled datasets,
+which remain the property of their respective providers and are included
+only for illustration, with attribution:
+
+- Satellite imagery  (assets/ortho.jpg)
+    © Esri — "World Imagery"
+    (Esri, Maxar, Earthstar Geographics, and the GIS User Community).
+    Subject to Esri's Terms of Use.
+- Road geometry      (js/data/roads.json)
+    © OpenStreetMap contributors, Open Database License (ODbL).
+- Elevation          (js/data/elevation.json)
+    SRTM / NASADEM (NASA / USGS), public domain.
+- Cadastral parcel   (js/data/parcel.json)
+    Derived from the public State Land Cadastre of Ukraine.
+
+These datasets are NOT covered by the copyright above and remain subject
+to their respective licenses and terms of use.
+--------------------------------------------------------------------------
+
+Disclaimer: the Hoverla pendulum tramway is a conceptual / illustrative
+project, not a real construction proposal — the area lies within the
+Carpathian National Nature Park.
 
 For licensing inquiries, contact the author directly.

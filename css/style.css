@@ -125,6 +125,14 @@ input[type="checkbox"] { accent-color: var(--accent); }
     border: 1px solid var(--border); pointer-events: none;
 }
 
+/* ---------- Attribution credit ---------- */
+#credit {
+    position: fixed; bottom: 4px; right: 8px; z-index: 20;
+    font-size: 9px; color: rgba(200,210,220,0.62);
+    background: rgba(10,13,18,0.4); padding: 2px 7px; border-radius: 6px;
+    border: 1px solid rgba(120,150,180,0.14); pointer-events: none;
+}
+
 /* ---------- Profile / lift-data window ---------- */
 .menu-btn {
     display: block; width: 100%; margin: 0 0 12px; padding: 9px 10px;
