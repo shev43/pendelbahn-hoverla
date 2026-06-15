@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pendelbahn Hoverla — 3D концепт канатної дороги</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="loading">
+        <div class="loader-content">
+            <h2>PENDELBAHN HOVERLA</h2>
+            <p>Завантаження 3D сцени…</p>
+            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        </div>
+    </div>
+
+    <div id="viewer-container"></div>
+
+    <!-- Top bar -->
+    <div id="top-bar">
+        <div class="logo">PENDELBAHN HOVERLA <span class="subtitle">Чорногора · Карпати · 3D концепт</span></div>
+        <div class="controls-top">
+            <button class="btn active" data-view="all">Загальний вид</button>
+            <button class="btn" data-view="valley">Долинна станція</button>
+            <button class="btn" data-view="summit">Вершинна станція</button>
+            <button class="btn" data-view="peak">Вершина Говерли</button>
+            <button class="btn" data-view="cabin">Політ за кабіною</button>
+        </div>
+    </div>
+
+    <!-- Legend / layers -->
+    <button id="legend-toggle" onclick="document.getElementById('legend').classList.toggle('show')">☰ Меню</button>
+    <div id="legend" class="panel">
+        <h4>Легенда</h4>
+        <div class="legend-item"><span class="swatch" style="background:#e8e4e0"></span> Долинна станція (~1300 м)</div>
+        <div class="legend-item"><span class="swatch" style="background:#c8cdd4"></span> Вершинна станція (~2000 м)</div>
+        <div class="legend-item"><span class="swatch" style="background:#9aa0a6"></span> Опори траси</div>
+        <div class="legend-item"><span class="swatch" style="background:#ffcc44"></span> Кабіна (60 пас.)</div>
+        <div class="legend-item"><span class="swatch" style="background:#2b2f36"></span> Несучо-тяговий трос</div>
+        <div class="legend-item"><span class="swatch" style="background:#ffffff"></span> Сніжник вершини</div>
+        <hr>
+        <strong style="font-size:11px;color:#8a8;">Шари:</strong>
+        <label><input type="checkbox" id="toggleTerrain" checked> ⛰️ Рельєф</label>
+        <label><input type="checkbox" id="toggleCable" checked> 🪢 Трос</label>
+        <label><input type="checkbox" id="toggleTowers" checked> 🗼 Опори</label>
+        <label><input type="checkbox" id="toggleCabins" checked> 🚡 Кабіни</label>
+        <label><input type="checkbox" id="toggleStations" checked> 🏛️ Станції</label>
+        <label><input type="checkbox" id="toggleTrees" checked> 🌲 Ліс</label>
+        <label><input type="checkbox" id="toggleLabels" checked> 📝 Підписи</label>
+        <label><input type="checkbox" id="toggleSnow" checked> ❄️ Сніжник</label>
+        <hr>
+        <label><input type="range" id="speed" min="0" max="2.5" step="0.1" value="1"> 🕑 Швидкість</label>
+    </div>
+
+    <!-- Stats -->
+    <div id="stats-panel" class="panel">
+        <h4>Параметри траси</h4>
+        <div class="stat-row"><span>Тип:</span><span>Pendelbahn (2 кабіни)</span></div>
+        <div class="stat-row"><span>Долинна станція:</span><span>~1300 м</span></div>
+        <div class="stat-row"><span>Вершинна станція:</span><span>~2000 м</span></div>
+        <div class="stat-row"><span>Вершина Говерли:</span><span>2061 м</span></div>
+        <div class="stat-row"><span>Перепад:</span><span>~700 м</span></div>
+        <div class="stat-row"><span>Похила довжина:</span><span>~2.3 км</span></div>
+        <div class="stat-row"><span>Місткість кабіни:</span><span>60 пас.</span></div>
+    </div>
+
+    <!-- Compass -->
+    <div id="compass">
+        <div class="compass-ring">
+            <span class="compass-n">N</span>
+            <span class="compass-s">S</span>
+            <span class="compass-e">E</span>
+            <span class="compass-w">W</span>
+            <div class="compass-needle" id="compassNeedle"></div>
+        </div>
+    </div>
+
+    <div id="hint">Ліва миша — обертання · Колесо — зум · Права/Shift — панорама</div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/viewer.js?v=20260615a"></script>
+</body>
+</html>
