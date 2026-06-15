@@ -22,8 +22,8 @@
         <div class="logo">PENDELBAHN HOVERLA <span class="subtitle">Чорногора · Карпати · 3D концепт</span></div>
         <div class="controls-top">
             <button class="btn active" data-view="all">Загальний вид</button>
-            <button class="btn" data-view="valley">Долинна станція</button>
-            <button class="btn" data-view="summit">Вершинна станція</button>
+            <button class="btn" data-view="valley">Заросляк</button>
+            <button class="btn" data-view="summit">Мала Говерла</button>
             <button class="btn" data-view="peak">Вершина Говерли</button>
             <button class="btn" data-view="cabin">Політ за кабіною</button>
         </div>
@@ -33,9 +33,9 @@
     <button id="legend-toggle" onclick="document.getElementById('legend').classList.toggle('show')">☰ Меню</button>
     <div id="legend" class="panel">
         <h4>Легенда</h4>
-        <div class="legend-item"><span class="swatch" style="background:#e8e4e0"></span> Долинна станція (~1300 м)</div>
-        <div class="legend-item"><span class="swatch" style="background:#c8cdd4"></span> Вершинна станція (~2000 м)</div>
-        <div class="legend-item"><span class="swatch" style="background:#9aa0a6"></span> Опори траси</div>
+        <div class="legend-item"><span class="swatch" style="background:#e8e4e0"></span> Заросляк · нижня (1259 м)</div>
+        <div class="legend-item"><span class="swatch" style="background:#c8cdd4"></span> Мала Говерла · верхня (1760 м)</div>
+        <div class="legend-item"><span class="swatch" style="background:#9aa0a6"></span> Опора · 47 м (1 шт)</div>
         <div class="legend-item"><span class="swatch" style="background:#ffcc44"></span> Кабіна (60 пас.)</div>
         <div class="legend-item"><span class="swatch" style="background:#2b2f36"></span> Несучо-тяговий трос</div>
         <div class="legend-item"><span class="swatch" style="background:#ffffff"></span> Сніжник вершини</div>
@@ -57,11 +57,14 @@
     <div id="stats-panel" class="panel">
         <h4>Параметри траси</h4>
         <div class="stat-row"><span>Тип:</span><span>Pendelbahn (2 кабіни)</span></div>
-        <div class="stat-row"><span>Долинна станція:</span><span>~1300 м</span></div>
-        <div class="stat-row"><span>Вершинна станція:</span><span>~2000 м</span></div>
-        <div class="stat-row"><span>Вершина Говерли:</span><span>2061 м</span></div>
-        <div class="stat-row"><span>Перепад:</span><span>~700 м</span></div>
-        <div class="stat-row"><span>Похила довжина:</span><span>~2.3 км</span></div>
+        <div class="stat-row"><span>Нижня (Заросляк):</span><span>1259 м</span></div>
+        <div class="stat-row"><span>Верхня (Мала Говерла):</span><span>1760 м</span></div>
+        <div class="stat-row"><span>Перепад висот:</span><span>501 м</span></div>
+        <div class="stat-row"><span>Горизонт. довжина:</span><span>2343 м</span></div>
+        <div class="stat-row"><span>Довжина тросу:</span><span>2396 м</span></div>
+        <div class="stat-row"><span>Середній ухил:</span><span>21.4 %</span></div>
+        <div class="stat-row"><span>Опора:</span><span>1 × 47 м</span></div>
+        <div class="stat-row"><span>Прольоти:</span><span>1437 + 906 м</span></div>
         <div class="stat-row"><span>Місткість кабіни:</span><span>60 пас.</span></div>
     </div>
 
@@ -86,6 +89,6 @@
         }
     }
     </script>
-    <script type="module" src="js/viewer.js?v=20260615a"></script>
+    <script type="module" src="js/viewer.js?v=20260615b"></script>
 </body>
 </html>

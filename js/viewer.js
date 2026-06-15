@@ -8,9 +8,9 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 // ──────────────────────────────────────────────────────────────────────────
 //  Геометрія траси (метри, Y — вгору)
 // ──────────────────────────────────────────────────────────────────────────
-const VALLEY = new THREE.Vector2(0, 0);        // (x, z) долинної станції
-const SUMMIT = new THREE.Vector2(2150, -200);  // (x, z) вершинної станції
-const PEAK   = new THREE.Vector2(2360, -260);  // вершина Говерли
+const VALLEY = new THREE.Vector2(0, 0);        // Заросляк (нижня станція) · 1259 м
+const SUMMIT = new THREE.Vector2(2300, -440);  // Мала Говерла (верхня станція) · 1760 м
+const PEAK   = new THREE.Vector2(2820, -700);  // вершина Говерли · 2061 м (за верхньою станцією)
 
 // Детермінований «шум» на синусах — щоб опори стабільно сідали на рельєф
 function gauss(x, z, cx, cz, amp, sigma) {
@@ -22,16 +22,29 @@ function smooth01(t) {
     return t * t * (3 - 2 * t);
 }
 
+// Проєкція точки на лінію траси → параметр t уздовж низ(Заросляк)→верх(Мала Говерла)
+const _LINE = new THREE.Vector2().subVectors(SUMMIT, VALLEY);
+const _LINE_LEN2 = _LINE.lengthSq();
+function alongLineT(x, z) {
+    return ((x - VALLEY.x) * _LINE.x + (z - VALLEY.y) * _LINE.y) / _LINE_LEN2;
+}
+
+// Поздовжній профіль рельєфу вздовж тросу (реальні позначки Заросляк 1259 → Мала Говерла 1760).
+// Ввігнутий підйом тримає рельєф нижче прямого тросу → опора підпирає трос знизу.
+function profileElev(t) {
+    if (t <= 0) return 1259 + 55 * t;                         // трохи нижче нижньої станції
+    if (t <= 1) return 1259 + 501 * Math.pow(t, 1.12);        // 1259 → 1760
+    return 1760 + 301 * smooth01(Math.min(1, (t - 1) / 0.6)); // далі вгору до Говерли (2061)
+}
+
 // Висота рельєфу в точці (x, z)
 function terrainHeight(x, z) {
-    let h = 1180;
-    h += 760 * smooth01(x / 2150);                  // загальний підйом до вершини
-    h += gauss(x, z, PEAK.x, PEAK.y, 150, 250);     // масив Говерли
-    h += gauss(x, z, 1350, 720, 120, 520);          // бічний хребет
-    h += gauss(x, z, 800, -820, 95, 470);           // бічна вершина
-    h -= gauss(x, z, -180, 240, 70, 420);           // улоговина біля долинної станції
-    h += 16 * Math.sin(x * 0.0042) * Math.cos(z * 0.0051);
-    h += 9  * Math.sin(z * 0.011 + 1.3);
+    let h = profileElev(alongLineT(x, z));
+    h += gauss(x, z, PEAK.x, PEAK.y, 205, 235);     // масив Говерли (за верхньою станцією)
+    h += gauss(x, z, 1900, 650, 90, 430);           // бічний хребет (північ від траси)
+    h += gauss(x, z, 650, -1350, 95, 480);          // бічна вершина (південь від траси)
+    h += 10 * Math.sin(x * 0.0042) * Math.cos(z * 0.0051);
+    h += 6  * Math.sin(z * 0.011 + 1.3);
     return h;
 }
 
@@ -187,28 +200,25 @@ const STATION_H = 11;     // висота будівлі станції
 const SHEAVE_UP = 7;      // підняття шківа над дахом
 const HANGER    = 9;      // довжина підвіски кабіни
 
-function lineZ(x) {        // z уздовж траси як функція x
-    const t = (x - VALLEY.x) / (SUMMIT.x - VALLEY.x);
-    return THREE.MathUtils.lerp(VALLEY.y, SUMMIT.y, t);
-}
-
-// Контрольні точки троса: верх долинної станції → вершини опор → верх вершинної
-const towerX = [430, 880, 1330, 1780];
-const cablePts = [];
-cablePts.push(new THREE.Vector3(VALLEY.x, H_VALLEY + STATION_H + SHEAVE_UP, VALLEY.y));
-const towerData = [];
-for (const tx of towerX) {
-    const tz = lineZ(tx);
-    const ground = terrainHeight(tx, tz);
-    const clear = 26 + 10 * Math.sin(tx * 0.01);      // просвіт троса над землею
-    const top = ground + clear;
-    cablePts.push(new THREE.Vector3(tx, top, tz));
-    towerData.push({ x: tx, z: tz, ground, top });
-}
-cablePts.push(new THREE.Vector3(SUMMIT.x, H_SUMMIT + STATION_H + SHEAVE_UP, SUMMIT.y));
-
-const cableCurve = new THREE.CatmullRomCurve3(cablePts, false, 'catmullrom', 0.4);
+// Трос — пряма Заросляк → Мала Говерла (маятникова схема: одна несуча лінія).
+const valleySheave = new THREE.Vector3(VALLEY.x, H_VALLEY + STATION_H + SHEAVE_UP, VALLEY.y);
+const summitSheave = new THREE.Vector3(SUMMIT.x, H_SUMMIT + STATION_H + SHEAVE_UP, SUMMIT.y);
+const cablePts = [valleySheave.clone(), summitSheave.clone()];
+const cableCurve = new THREE.CatmullRomCurve3(cablePts, false, 'catmullrom', 0.0);
 const CABLE_LEN = cableCurve.getLength();
+
+// Одна опора на «плечі» долини — точка користувача 48°9′59″Пн 24°31′5″Сх,
+// ≈61 % шляху (1437 м від низу). Висота опори = висота прямого тросу тут − земля.
+const TOWER_T = 1437 / 2343;                       // частка шляху до опори
+const towerData = [];
+{
+    const tp = cableCurve.getPointAt(TOWER_T);     // точка тросу над опорою
+    const ground = terrainHeight(tp.x, tp.z);
+    towerData.push({ x: tp.x, z: tp.z, ground, top: tp.y });
+}
+const TOWER_H = Math.max(1, Math.round(towerData[0].top - towerData[0].ground));  // ≈ 47 м
+const SPAN_LOWER = Math.round(TOWER_T * 2343);     // 1437 м
+const SPAN_UPPER = 2343 - SPAN_LOWER;              // 906 м
 
 function buildCable() {
     const grp = new THREE.Group();
@@ -289,8 +299,8 @@ function buildStation(x, z, ground, label, tone) {
 
 function buildStations() {
     const grp = new THREE.Group();
-    grp.add(buildStation(VALLEY.x, VALLEY.y, H_VALLEY, 'Долинна станція · 1300 м', 0xe8e4e0));
-    grp.add(buildStation(SUMMIT.x, SUMMIT.y, H_SUMMIT, 'Вершинна станція · 2000 м', 0xc8cdd4));
+    grp.add(buildStation(VALLEY.x, VALLEY.y, H_VALLEY, 'Заросляк · 1259 м', 0xe8e4e0));
+    grp.add(buildStation(SUMMIT.x, SUMMIT.y, H_SUMMIT, 'Мала Говерла · 1760 м', 0xc8cdd4));
     scene.add(grp);
     layers.stations = grp;
 }
@@ -383,9 +393,11 @@ function roundRect(ctx, x, y, w, h, r) {
 function buildLabels() {
     const grp = new THREE.Group();
     const peakY = terrainHeight(PEAK.x, PEAK.y);
+    const tw = towerData[0];
     const items = [
-        { t: 'Долинна станція · 1300 м', c: '#e8e4e0', p: [VALLEY.x, H_VALLEY + STATION_H + 30, VALLEY.y] },
-        { t: 'Вершинна станція · 2000 м', c: '#c8cdd4', p: [SUMMIT.x, H_SUMMIT + STATION_H + 30, SUMMIT.y] },
+        { t: '▼ Заросляк · 1259 м', c: '#e8e4e0', p: [VALLEY.x, H_VALLEY + STATION_H + 30, VALLEY.y] },
+        { t: '▲ Мала Говерла · 1760 м', c: '#c8cdd4', p: [SUMMIT.x, H_SUMMIT + STATION_H + 30, SUMMIT.y] },
+        { t: `╪ Опора · ${TOWER_H} м`, c: '#ffcc44', p: [tw.x, tw.top + 14, tw.z] },
         { t: '▲ Говерла · 2061 м', c: '#ffffff', p: [PEAK.x, peakY + 60, PEAK.y] },
     ];
     for (const it of items) {
