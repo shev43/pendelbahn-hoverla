@@ -274,31 +274,65 @@ function buildParcel() {
     scene.add(grp); layers.parcel = grp;
 }
 
-// Реальна дорога Ворохта → Заросляк (OSM) — стрічка, що лягає на рельєф
+// Внутрішні нормалі ребер опуклого полігона (для відсікання)
+function polyEdges(poly) {
+    let area = 0;
+    for (let i = 0; i < poly.length; i++) { const a = poly[i], b = poly[(i + 1) % poly.length]; area += a.x * b.y - b.x * a.y; }
+    const s = area > 0 ? 1 : -1, edges = [];
+    for (let i = 0; i < poly.length; i++) {
+        const a = poly[i], b = poly[(i + 1) % poly.length];
+        edges.push({ ax: a.x, ay: a.y, nx: -(b.y - a.y) * s, ny: (b.x - a.x) * s });
+    }
+    return edges;
+}
+// Відсікання полілінії по опуклому полігону (Cyrus–Beck) → масив під-поліліній усередині
+function clipPolyline(pts, edges) {
+    const out = []; let cur = [];
+    for (let i = 0; i < pts.length - 1; i++) {
+        const p0 = pts[i], p1 = pts[i + 1], dx = p1.x - p0.x, dy = p1.y - p0.y;
+        let tE = 0, tL = 1, ok = true;
+        for (const e of edges) {
+            const denom = e.nx * dx + e.ny * dy;
+            const num = e.nx * (p0.x - e.ax) + e.ny * (p0.y - e.ay);
+            if (Math.abs(denom) < 1e-12) { if (num < 0) { ok = false; break; } }
+            else { const t = -num / denom; if (denom > 0) tE = Math.max(tE, t); else tL = Math.min(tL, t); }
+        }
+        if (!ok || tE > tL) { if (cur.length > 1) out.push(cur); cur = []; continue; }
+        const a = new THREE.Vector2(p0.x + dx * tE, p0.y + dy * tE);
+        const b = new THREE.Vector2(p0.x + dx * tL, p0.y + dy * tL);
+        if (cur.length === 0) cur.push(a);
+        else if (cur[cur.length - 1].distanceTo(a) > 0.5) { if (cur.length > 1) out.push(cur); cur = [a]; }
+        cur.push(b);
+    }
+    if (cur.length > 1) out.push(cur);
+    return out;
+}
+function addRoadRibbon(grp, pts, half, mat) {
+    const verts = [], idx = [];
+    for (let i = 0; i < pts.length; i++) {
+        const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)];
+        let tx = b.x - a.x, tz = b.y - a.y; const L = Math.hypot(tx, tz) || 1; tx /= L; tz /= L;
+        const nx = -tz, nz = tx, cx = pts[i].x, cz = pts[i].y;
+        const lx = cx + nx * half, lz = cz + nz * half, rx = cx - nx * half, rz = cz - nz * half;
+        verts.push(lx, groundY(lx, lz) + 1.0, lz, rx, groundY(rx, rz) + 1.0, rz);
+    }
+    for (let i = 0; i < pts.length - 1; i++) { const k = i * 2; idx.push(k, k + 2, k + 1, k + 1, k + 2, k + 3); }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+    geo.setIndex(idx); geo.computeVertexNormals();
+    const mesh = new THREE.Mesh(geo, mat); mesh.receiveShadow = true; grp.add(mesh);
+}
+
+// Реальна дорога Ворохта → Заросляк (OSM), обрізана по краю карти (полігону квадрата)
 function buildRoads() {
     const grp = new THREE.Group();
     const mat = new THREE.MeshStandardMaterial({ color: 0x6e655a, roughness: 0.95, side: THREE.DoubleSide });
+    const edges = polyEdges(polyLocal);
     for (const r of ROADS.roads) {
-        const pts = r.coords.map(([la, lo]) => new THREE.Vector2(ll2x(lo), ll2z(la)));
-        if (pts.length < 2) continue;
+        const raw = r.coords.map(([la, lo]) => new THREE.Vector2(ll2x(lo), ll2z(la)));
+        if (raw.length < 2) continue;
         const half = r.highway === 'service' ? 2.4 : 3.2;     // піврядина (м)
-        const verts = [], idx = [];
-        for (let i = 0; i < pts.length; i++) {
-            const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)];
-            let tx = b.x - a.x, tz = b.y - a.y; const L = Math.hypot(tx, tz) || 1; tx /= L; tz /= L;
-            const nx = -tz, nz = tx;                           // перпендикуляр до напрямку
-            const cx = pts[i].x, cz = pts[i].y;
-            const lx = cx + nx * half, lz = cz + nz * half, rx = cx - nx * half, rz = cz - nz * half;
-            verts.push(lx, groundY(lx, lz) + 1.0, lz, rx, groundY(rx, rz) + 1.0, rz);
-        }
-        for (let i = 0; i < pts.length - 1; i++) {
-            const a = i * 2;
-            idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3);
-        }
-        const geo = new THREE.BufferGeometry();
-        geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
-        geo.setIndex(idx); geo.computeVertexNormals();
-        const mesh = new THREE.Mesh(geo, mat); mesh.receiveShadow = true; grp.add(mesh);
+        for (const seg of clipPolyline(raw, edges)) addRoadRibbon(grp, seg, half, mat);
     }
     scene.add(grp); layers.road = grp;
 }
@@ -378,7 +412,7 @@ function buildCabin(color) {
 }
 function buildCabins() {
     const grp = new THREE.Group();
-    const a = buildCabin(0xffcc44), b = buildCabin(0xff7755);
+    const a = buildCabin(0xffcc44), b = buildCabin(0x3a86ff);   // жовта + синя
     cabins.push(a, b); grp.add(a, b); scene.add(grp); layers.cabins = grp;
 }
 const _p = new THREE.Vector3();
@@ -506,7 +540,11 @@ const clock = new THREE.Clock();
 let speed = 1;
 const needle = document.getElementById('compassNeedle');
 const camDir = new THREE.Vector3();
-const followOffset = new THREE.Vector3(40, 55, 80);
+// чейс-камера за кабіною
+let _prevU = 0;
+const _UP = new THREE.Vector3(0, 1, 0);
+const _tan = new THREE.Vector3(), _travelDir = new THREE.Vector3(0, 0, -1);
+const _side = new THREE.Vector3(), _want = new THREE.Vector3(), _look = new THREE.Vector3();
 
 function animate() {
     requestAnimationFrame(animate);
@@ -517,10 +555,18 @@ function animate() {
         const u = progress(t);
         placeCabin(cabins[0], u);
         placeCabin(cabins[1], 1 - u);
+        const goingUp = u >= _prevU - 1e-6;
+        _prevU = u;
         if (followCabin) {
             const c = cabins[0].position;
-            controls.target.lerp(c, 0.1);
-            camera.position.lerp(c.clone().add(followOffset), 0.05);
+            cableCurve.getTangentAt(THREE.MathUtils.clamp(u, 0.001, 0.999), _tan);
+            _travelDir.copy(_tan).multiplyScalar(goingUp ? 1 : -1);     // напрям руху кабіни
+            _side.crossVectors(_travelDir, _UP).normalize();
+            _want.copy(c).addScaledVector(_travelDir, -95)              // позаду
+                 .addScaledVector(_UP, 50).addScaledVector(_side, 26);  // вище + трохи збоку
+            camera.position.lerp(_want, 0.06);
+            _look.copy(c).addScaledVector(_travelDir, 22);              // дивимось трохи вперед
+            controls.target.lerp(_look, 0.12);
         }
     }
     if (tween) {
@@ -578,7 +624,14 @@ addEventListener('resize', () => {
 function drawProfile() {
     const cv = document.getElementById('profileCanvas');
     if (!cv || !cableCurve) return;
-    const ctx = cv.getContext('2d'), W = cv.width, H = cv.height, pl = 46, pr = 16, pt = 16, pb = 26;
+    // адаптивний розмір (мобільний/десктоп) + чіткість під DPR
+    const cssW = Math.min(820, Math.max(260, Math.floor(innerWidth * 0.86)));
+    const cssH = Math.round(cssW * (innerWidth < 600 ? 0.54 : 0.37));
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    cv.style.width = cssW + 'px'; cv.style.height = cssH + 'px';
+    cv.width = Math.round(cssW * dpr); cv.height = Math.round(cssH * dpr);
+    const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const W = cssW, H = cssH, pl = 44, pr = 14, pt = 16, pb = 24;
     ctx.clearRect(0, 0, W, H);
     const N = 240, horiz = SUMMIT.clone().sub(VALLEY).length(), drop = HANGER + 6;
     const ter = [], cab = [], cabBot = [];
@@ -635,3 +688,4 @@ const profModal = document.getElementById('profile-modal');
 document.getElementById('btnProfile')?.addEventListener('click', () => { if (profModal) { profModal.classList.add('show'); drawProfile(); } });
 document.getElementById('profile-close')?.addEventListener('click', () => profModal && profModal.classList.remove('show'));
 profModal?.addEventListener('click', e => { if (e.target === profModal) profModal.classList.remove('show'); });
+addEventListener('resize', () => { if (profModal && profModal.classList.contains('show')) drawProfile(); });
