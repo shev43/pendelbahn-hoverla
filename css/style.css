@@ -92,8 +92,8 @@ input[type="checkbox"] { accent-color: var(--accent); }
 .btn.active { background: var(--accent); color: #0a0d12; border-color: var(--accent); font-weight: 600; }
 
 /* ---------- Positions ---------- */
-#legend { top: 70px; left: 16px; max-width: 230px; }
-#stats-panel { bottom: 16px; left: 16px; min-width: 220px; }
+#legend { top: 70px; left: 16px; max-width: 230px; max-height: calc(100vh - 130px); overflow-y: auto; }
+#stats-panel { bottom: 16px; right: 16px; min-width: 220px; max-height: calc(100vh - 120px); overflow-y: auto; }
 .legend-item { display: flex; align-items: center; gap: 8px; padding: 2px 0; color: var(--muted); }
 .swatch { width: 13px; height: 13px; border-radius: 3px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.15); }
 .stat-row { display: flex; justify-content: space-between; gap: 14px; padding: 3px 0; }
@@ -127,7 +127,7 @@ input[type="checkbox"] { accent-color: var(--accent); }
 
 /* ---------- Attribution credit ---------- */
 #credit {
-    position: fixed; bottom: 4px; right: 8px; z-index: 20;
+    position: fixed; bottom: 4px; left: 8px; z-index: 20;
     font-size: 9px; color: rgba(200,210,220,0.62);
     background: rgba(10,13,18,0.4); padding: 2px 7px; border-radius: 6px;
     border: 1px solid rgba(120,150,180,0.14); pointer-events: none;
